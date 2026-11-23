@@ -28,19 +28,19 @@ def require_member():
 def index():
     if require_member():
         return redirect("/dashboard")
-    return render_template("public.html")
+    return render_template("public.html", supabase_url=SUPABASE_URL, supabase_key=SUPABASE_KEY)
 
 @app.route("/login")
 def login():
     if require_member():
         return redirect("/dashboard")
-    return render_template("login.html")
+    return render_template("login.html", supabase_url=SUPABASE_URL, supabase_key=SUPABASE_KEY)
 
 @app.route("/signup")
 def signup():
     if require_member():
         return redirect("/dashboard")
-    return render_template("signup.html")
+    return render_template("signup.html", supabase_url=SUPABASE_URL, supabase_key=SUPABASE_KEY)
 
 @app.route("/auth/session", methods=["POST"])
 def create_session():
