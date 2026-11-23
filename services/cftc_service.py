@@ -50,7 +50,7 @@ FIELDS = {
 
 def _request(dataset, params):
     url = f'{BASE}/{dataset}.json'
-    response = requests.get(url, params=params, timeout=30, headers={
+    response = requests.get(url, params=params, timeout=12, headers={
         'User-Agent': 'AI-Trading-Desk/1.0',
         'Accept': 'application/json'
     })
