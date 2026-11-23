@@ -1,5 +1,6 @@
 import os
 import requests
+import time
 from flask import Flask, render_template, jsonify, request, redirect, make_response
 from services.cftc_service import get_market_history, get_market_list, get_latest_market_data
 from services.cot_calculator import enrich_history
@@ -8,6 +9,9 @@ app = Flask(__name__)
 SUPABASE_URL = os.getenv("SUPABASE_URL", "").rstrip("/")
 SUPABASE_KEY = os.getenv("SUPABASE_PUBLISHABLE_KEY", os.getenv("SUPABASE_ANON_KEY", ""))
 SESSION_COOKIE = "atd_session"
+# Process-local cache keeps repeated CFTC calls from blocking every section.
+_market_cache = {}
+_CACHE_TTL = 900
 
 def get_token():
     return request.cookies.get(SESSION_COOKIE) or (request.headers.get("Authorization", "").replace("Bearer ", "", 1) if request.headers.get("Authorization", "").startswith("Bearer ") else None)
@@ -93,8 +97,15 @@ def market(code):
         weeks = 156
     report = request.args.get("report", "disaggregated")
     try:
+        cache_key = (code, weeks, report)
+        cached = _market_cache.get(cache_key)
+        now = time.time()
+        if cached and now - cached[0] < _CACHE_TTL:
+            return jsonify(cached[1])
         history = get_market_history(code, weeks=weeks, report=report)
-        return jsonify(enrich_history(history))
+        payload = enrich_history(history)
+        _market_cache[cache_key] = (now, payload)
+        return jsonify(payload)
     except Exception:
         app.logger.exception("Failed to load market history")
         return jsonify({"error": "Unable to load market history"}), 502
