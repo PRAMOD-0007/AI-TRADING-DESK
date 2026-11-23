@@ -42,6 +42,10 @@ def signup():
         return redirect("/dashboard")
     return render_template("signup.html", supabase_url=SUPABASE_URL, supabase_key=SUPABASE_KEY)
 
+@app.route("/auth/config")
+def auth_config():
+    return jsonify({"supabase_url": SUPABASE_URL, "supabase_key": SUPABASE_KEY})
+
 @app.route("/auth/session", methods=["POST"])
 def create_session():
     payload = request.get_json(silent=True) or {}
