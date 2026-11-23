@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Trading Desk | COT Intelligence</title>
+<link rel="stylesheet" href="/static/css/styles.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><div class="brand-mark">AT</div><div><strong>AI TRADING DESK</strong><small>COT INTELLIGENCE</small></div></div>
+    <div class="nav-label">WORKSPACE</div>
+    <a class="nav-item active" href="#overview"><span>▦</span> Overview</a>
+    <a class="nav-item" href="#positioning"><span>⌁</span> Positioning</a>
+    <a class="nav-item" href="#markets"><span>◈</span> Markets</a>
+    <div class="sidebar-bottom"><div class="source-status"><span class="dot"></span><div><strong>DATA CONNECTION</strong><small>CFTC public data</small></div></div><small class="version">BUILD 0.1.0</small></div>
+  </aside>
+  <main class="main">
+    <header class="topbar"><div><span class="eyebrow">MARKET INTELLIGENCE</span><h1>Commitments of Traders</h1></div><div class="top-actions"><span class="live-tag"><i></i> PUBLIC DATA</span><button id="refreshBtn" class="refresh-btn">↻ Refresh</button></div></header>
+    <section class="market-strip" id="marketStrip"><div class="loading">Loading market data…</div></section>
+    <section class="content-grid">
+      <div class="panel chart-panel" id="positioning"><div class="panel-head"><div><span class="eyebrow">POSITIONING HISTORY</span><h2 id="chartTitle">Gold · Managed Money</h2></div><div class="controls"><select id="marketSelect"></select><select id="periodSelect"><option value="52">52 weeks</option><option value="156" selected>3 years</option><option value="260">5 years</option></select></div></div><div class="chart-wrap"><canvas id="positionChart"></canvas></div><div class="legend"><span><i class="legend-net"></i> Net position</span><span><i class="legend-zero"></i> Zero line</span></div></div>
+      <div class="panel stats-panel"><div class="panel-head"><div><span class="eyebrow">LATEST REPORT</span><h2>Position Snapshot</h2></div></div><div id="stats" class="stats"><div class="loading">Select a market</div></div></div>
+      <div class="panel table-panel" id="markets"><div class="panel-head"><div><span class="eyebrow">WEEKLY DATA</span><h2>Position History</h2></div><span class="table-note">Tuesday report · Friday release</span></div><div class="table-scroll"><table><thead><tr><th>REPORT DATE</th><th>LONG</th><th>SHORT</th><th>NET</th><th>WEEKLY Δ</th><th>COT INDEX</th><th>OPEN INTEREST</th></tr></thead><tbody id="historyTable"></tbody></table></div></div>
+    </section>
+    <footer>Data source: Commodity Futures Trading Commission (CFTC). Position data is weekly and may be delayed. Not financial advice.</footer>
+  </main>
+</div>
+<script src="/static/js/dashboard.js"></script>
+</body></html>
