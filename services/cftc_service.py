@@ -8,7 +8,6 @@ DATASETS = {
     'legacy': '6dca-aqww'
 }
 
-# Initial watchlist. Codes are CFTC contract market codes; users can add markets later.
 MARKETS = [
     {'code': '088691', 'symbol': 'GC', 'name': 'Gold', 'exchange': 'COMEX', 'category': 'Metals', 'report': 'disaggregated'},
     {'code': '084691', 'symbol': 'SI', 'name': 'Silver', 'exchange': 'COMEX', 'category': 'Metals', 'report': 'disaggregated'},
@@ -51,9 +50,17 @@ FIELDS = {
 
 def _request(dataset, params):
     url = f'{BASE}/{dataset}.json'
-    response = requests.get(url, params=params, timeout=30, headers={'User-Agent': 'AI-Trading-Desk/1.0'})
-    response.raise_for_status()
-    return response.json()
+    response = requests.get(url, params=params, timeout=30, headers={
+        'User-Agent': 'AI-Trading-Desk/1.0',
+        'Accept': 'application/json'
+    })
+    if not response.ok:
+        detail = response.text[:500].replace('\n', ' ')
+        raise RuntimeError(f'CFTC API HTTP {response.status_code}: {detail}')
+    try:
+        return response.json()
+    except ValueError as exc:
+        raise RuntimeError('CFTC API returned a non-JSON response') from exc
 
 
 def get_market_list():
@@ -63,14 +70,23 @@ def get_market_list():
 def get_market_history(code, weeks=156, report='disaggregated'):
     report = report if report in DATASETS else 'disaggregated'
     dataset = DATASETS[report]
-    select = ','.join(FIELDS[report])
     params = {
-        '$select': select,
         '$where': f"cftc_contract_market_code='{code}'",
         '$order': 'report_date_as_yyyy_mm_dd DESC',
         '$limit': int(weeks)
     }
-    rows = _request(dataset, params)
+    # First attempt a compact projection. If the source schema changes, retry
+    # without $select so we can still retrieve data and inspect the actual rows.
+    params_with_select = dict(params)
+    params_with_select['$select'] = ','.join(FIELDS[report])
+    try:
+        rows = _request(dataset, params_with_select)
+    except RuntimeError as exc:
+        if 'HTTP 400' not in str(exc):
+            raise
+        rows = _request(dataset, params)
+    if not isinstance(rows, list):
+        raise RuntimeError('CFTC API response was not a list of records')
     rows.reverse()
     return {'report': report, 'market_code': code, 'rows': rows}
 
@@ -83,6 +99,8 @@ def get_latest_market_data():
             rows = history['rows']
             if rows:
                 result.append({'market': market, 'latest': rows[-1], 'previous': rows[-2] if len(rows) > 1 else None})
+            else:
+                result.append({'market': market, 'error': 'No records returned by CFTC'})
         except Exception as exc:
             result.append({'market': market, 'error': str(exc)})
     return result
