@@ -108,6 +108,11 @@ def market(code):
         return jsonify(payload)
     except Exception:
         app.logger.exception("Failed to load market history")
+        stale = _market_cache.get((code, weeks, report))
+        if stale:
+            response = jsonify(stale[1])
+            response.headers["X-Data-Stale"] = "true"
+            return response
         return jsonify({"error": "Unable to load market history"}), 502
 
 @app.route("/api/latest")
