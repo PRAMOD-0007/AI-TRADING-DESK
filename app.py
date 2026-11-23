@@ -11,7 +11,7 @@ SUPABASE_KEY = os.getenv("SUPABASE_PUBLISHABLE_KEY", os.getenv("SUPABASE_ANON_KE
 SESSION_COOKIE = "atd_session"
 # Process-local cache keeps repeated CFTC calls from blocking every section.
 _market_cache = {}
-_CACHE_TTL = 900
+_CACHE_TTL = 21600
 
 def get_token():
     return request.cookies.get(SESSION_COOKIE) or (request.headers.get("Authorization", "").replace("Bearer ", "", 1) if request.headers.get("Authorization", "").startswith("Bearer ") else None)
