@@ -63,8 +63,26 @@ def create_session():
 
 @app.route("/auth/logout", methods=["POST"])
 def logout():
+    token = get_token()
+    # Revoke the Supabase refresh-token session when possible. Cookie clearing
+    # still happens even if Supabase is temporarily unavailable.
+    if token and SUPABASE_URL and SUPABASE_KEY:
+        try:
+            requests.post(
+                f"{SUPABASE_URL}/auth/v1/logout",
+                headers={"apikey": SUPABASE_KEY, "Authorization": f"Bearer {token}"},
+                timeout=4,
+            )
+        except requests.RequestException:
+            app.logger.warning("Supabase logout request failed; clearing local session cookie anyway")
+
     response = make_response(jsonify({"ok": True}))
-    response.delete_cookie(SESSION_COOKIE, path="/")
+    response.set_cookie(
+        SESSION_COOKIE, "", max_age=0, expires=0, path="/",
+        secure=request.is_secure or os.getenv("RENDER") == "true",
+        httponly=True, samesite="Lax",
+    )
+    response.headers["Cache-Control"] = "no-store"
     return response
 
 @app.route("/dashboard")
