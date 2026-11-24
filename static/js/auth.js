@@ -13,6 +13,19 @@
  const form = document.querySelector("#auth-form");
  const msg = document.querySelector("#message");
  const submit = document.querySelector("#submit");
+ // Show/hide password on both sign-in and account creation forms.
+ form?.querySelectorAll("[data-toggle-password]").forEach((button) => {
+   button.addEventListener("click", () => {
+     const input = button.closest(".password-field")?.querySelector('input[name="password"]');
+     if (!input) return;
+     const reveal = input.type === "password";
+     input.type = reveal ? "text" : "password";
+     button.setAttribute("aria-label", reveal ? "Hide password" : "Show password");
+     button.setAttribute("aria-pressed", String(reveal));
+     const label = button.querySelector("span");
+     if (label) label.textContent = reveal ? "Hide" : "Show";
+   });
+ });
  form?.addEventListener("submit", async (e) => {
    e.preventDefault(); msg.textContent=""; submit.disabled=true; submit.textContent="Please wait…";
    const email=form.email.value.trim(), password=form.password.value;
